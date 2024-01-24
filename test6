@@ -1,0 +1,104 @@
+right click - clone - next -next -clone
+adapter 2
+
+
+
+ip address
+
+dhclient enp0s8
+
+
+
+ip address add  192.168.56.99/24 brd + dev enp0s8
+ip add
+ip address del  192.168.56.99/24 brd + dev enp0s8
+ip add
+
+
+
+apt install mc 
+
+mcedit /etc/network/interfaces
+	copy allow-hotplu enp0s3 - iface enp0s3 inet dhcp -> paste allow-hotplu enp0s8 - iface enp0s8 inet dhcp
+	address 192.168.56.102/24 -> save
+ifup enp0s8
+ip add
+
+
+clone -> name: ... _NTEST next -> linked clone -> clone
+Network: Adapter 1 : Host-only -> vboxnet
+ip add
+
+ip 
+	mc
+	write in script
+	allow-hotplug enp0s8
+	iface enp0s8 inet static
+	address 192.168.56.102 	-- from enp0s3
+
+	ifup enp0s8
+
+	ifdown enp0s8
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+iptables -A INPUT	-l enp0s8		-j DROP
+iptables -D INPUT	-l enp0s8		-j DROP
+ping 192.168.56.99
+
+iptables -D INPUT	-s 192.168.56.90
+			-b enp0s8
+			-d			-destination
+			-p icp			-packet
+			-p udp
+			-p ocnp
+			--sport 80
+			--dport	91
+			
+
+iptables -A INPUT enp0s8 -j DROP
+iptables -A INPUT enp0s8 -j ACCESS
+
+iptables -P INPUT enp0s8 ACCESS
+
+
+iptables -L
+
+
+iptables -A INPUT -i enp0s8 192.168.56.50 tcp --dport 22 -j DROP
+
+iptables -F
+iptables -L
+
+iptables -P INPUT DROP
+
+iptables -L
+iptables -A INPUT -s 192.168.56.1 -j ACCEPT
+iptables -F
+iptables
+
+ip add
+
+vim /etc/network/interfaces
+
+vim.tiny /etc/network/interfaces
+	allow-hotplug enp0s3
+	iface enp0s8 inet static
+	address 192.168.56.50/24
+	gateway 192.168.56.99
+
+vim.tiny /etc/network/resolv/conf
+
+
+
+iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE
+cat /proc/sys/net/ipv4/ip_forward
+

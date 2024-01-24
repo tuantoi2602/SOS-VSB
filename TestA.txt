@@ -1,0 +1,242 @@
+Test A:
+Câu 1:
+Name: TestA
+Type: Linux
+Version: Debian (64-bit)
+
+-> Next -> (1024MB) Next -> (Create a virtual hard disk now) Create 
+-> (VDI) Next -> (Dynamically) Next -> (8GB) Create 
+
+Download Debian iso on Debian.org
+-> Start Virtual -> Add Debian iso -> Choose -> Start
+->Install-> English -> US -> American English -> debian.vsb.cz->Root PW: Thanhtuan123 -> Re-enter -> Full name: ngu0120 -> Username: ngu0120-> PW: Thanhtuan123 -> Re-enter -> Eastern -> Guided - user entire disk -> SCSI3 -> All files in one partition  (recommended for new users) -> Finish -> Yes -> No -> Czechia -> deb.debian.org -> HTTP(empty) Continue -> No -> Only SSH ->  GRud: Yes -> dev/sda -> continue  
+setup network:
+Tool -> Network->Create -> Right-click TestA -> Setting -> Network -> Tick Enable - Attached to: Host-only - Name: VirtualBox Host ->
+swap ( --):
+ext4 (extended file system): as the first file system created specifically for the Linux kernel.
+
+Câu 2:
+Right-click TestA -> Settings -> Storage -> Add Hard disks -> Create -> (VDI)Next -> Next -> Create -> Do it 3 times because create 
+
+Nhớ cài mấy cái mcedit bằng apt install ... (mc, quota, mdadm, ...)
+Nếu đăng nhập bằng linux: ssh ngu0120@[địa chỉ ip]
+dhclient enp0s8
+ip add
+
+apt install mdadm
+
+sau khi cài xong mdadm thì reboot lại
+
+ls /dev/sd*
+mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc --spare-device=1 /dev/sdd
+cat /proc/mdstat -> check
+
+Câu 3:
+cfdisk /dev/md0 -> gpt -> New 8GB -> Write , gõ Yes -> Quit (Đĩa md0p1 sẽ dc tạo)
+mkfs.ext4 /dev/md0p1
+mount /dev/md0p1 /mnt/
+mc
+
+Left: /home , right: /mnt
+F5 /home to /mnt
+
+blkid
+mcedit /etc/fstab
+Type: UUID: đĩa md0p1 <-->/home <--> /ext4 <--> defaults <--> 0 <--> 0 -> save và quit
+reboot
+mount | grep home
+cat /proc/mdstat
+
+
+
+Nếu cần có thể dùng câu lệnh để check nếu nó hoạt động đúng: 
+ls /dev/md*
+mdadm --manage /dev/md127 --set-faulty /dev/sdd
+watch -n 0 "cat /proc/mdstat"
+mdadm --manage /dev/md127 --remove /dev/sdd
+watch -n 0 "cat /proc/mdstat"
+mdadm --manage /dev/md127 --add /dev/sdd
+watch -n 0 "cat /proc/mdstat"
+
+Câu 4:
+Tạo 1 ổ đĩa mới 
+apt install quota
+useradd -m -s /bin/bash -c "comment" -p "" user01
+ls /home
+ls /dev/sd*
+cfdisk /dev/sde
+gpt -> New -> 8G Yes -> Write -> Yes -> Quit
+ls /dev/sd*
+mkfs.ext4 /dev/sde1
+mount /dev/sde1 /mnt
+mc -> F5 /home to /mnt
+mount | grep sde1
+umount /mnt
+mount | grep sde1	uuid=fc9f554b-f8cc-4576-820a-62b20015c8d4	/home	ext4	defaults	0	0
+mount -o quota /dev/sde1 /home
+mount | grep sde1
+ls /home/ -la
+blkid
+mcedit /etc/fstab
+UUID=sde1 <--> /home <--> ext4 <--> quota <--> 0 <--> 0 -----> save
+mount -a
+mount | grep sde1 UUID="1eb8dbeb-897f-4ddd-807c-397aa3c31f01"
+quotacheck /dev/sde1
+ls /home
+systemctl status quota
+systemctl start quota
+systemctl enable quota
+systemctl status quota
+reboot
+systemctl status quota
+ls /home
+quota user01
+edquota user01
+export EDITOR=mcedit
+mcedit user
+
+for i in $(seq 2 101)
+do
+	useradd -m -s /bin/bash -c "comment" -p $(echo passwd | openssl passwd -1 -stdin) user$i
+	echo "user$i added"
+	edquota -p user01 user$i
+done
+
+chmod +x user
+./user
+---Try to login another user
+edquota user100
+
+Câu 5:
+addgroup share -- tạo group
+addgroup user3 share --add user3 vào nhóm share
+cat /etc/group
+
+for i in $(seq 4 8)
+do
+	addgroup user$i share
+done
+
+
+Câu 6:
+mkdir share
+chown root:share shares
+chmod g+w shares
+chmod o-rx shares
+
+Sau đó test nó, bằng cách ls /home/shares -la và test cho từng user
+
+Câu 7:
+
+apt install apache2
+cd /etc/apache2/
+mc
+systemctl restart apache2
+ls sites-available/
+a2ensite default-ssl
+systemctl reload apache2
+cd /var/www/html/
+ls -la
+apt install php | grep apache
+libapache2-mod-php7
+ls          ---------- will return index.html
+service apache2 restart
+mv index.html index.php            ------ change name from index.html to index.php
+mcedit index.php
+apt update
+apt install mariadb-server
+
+
+# mysql -u root -p
+MariaDB [(none)]> use mysql
+MariaDB [mysql]> CREATE USER 'wiki'@'localhost' IDENTIFIED BY 'wiki';
+MariaDB [mysql]> \q
+
+# mysql -u root
+MariaDB [(none)]> CREATE DATABASE wiki;
+MariaDB [(none)]> use wiki
+MariaDB [wiki]> GRANT ALL ON wiki.* TO wiki@localhost;
+Query OK, 0 rows affected (0.01 sec)
+MariaDB [wiki]>\q
+
+apt install wget
+copy link download from the Internet
+wget https://releases.wikimedia.org/mediawiki/1.37/mediawiki-1.37.1.zip
+unzip mediawiki-1.37.1.zip
+mc
+copy all files from the unzip to outside
+
+apt search mbstring
+apt install php-mbstring
+apt search php-xml
+apt install php-intl
+service apache2 restart
+apt install php-mysql
+service apache2 restart
+
+sau đó truy cập bằng ip address
+
+Continue -> wiki -> Database name: wiki 	-> Continue -> Continue -> Project namespace: wiki
+		    Database username: wiki				   Your username: ngu0120      Choose: I'm bored already, just install , Continue -> Download LocalSettings.php
+		    Database password: wiki				   Password: Thanhtuan123
+									   Email address: ngu0120@vsb.cz	   
+setup the account on the website	
+open new cmd with your acc
+
+ls /tmp            -----check the move file
+cd Downloads
+ls
+scp LocalSettings.php 192.168.56.102:/tmp
+
+
+Go to Linux Debian
+cd /tmp
+mv LocalSettings.php /var/www/html
+
+
+Câu 8:
+Create a link clone on virtualbox
+Create bash script
+mcedit /opt/firewall.bash
+#!/bin/bash
+iptables -F
+iptables -P INPUT DROP
+iptables -A INPUT -i enp0s8 -s 192.168.56.1 -j ACCEPT
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+cat /proc/sys/net/ipv4/ip_forward
+
+
+
+
+mcedit /opt/firewall.bash
+#!/bin/bash
+iptables -F
+iptables -P OUTPUT DROP
+for i in $(seq 0 10)
+do
+	iptables -A OUTPUT -i enp0s8 -s 192.168.56.$i -p tcp -j ACCEPT
+done
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+cat /proc/sys/net/ipv4/ip_forward
+
+Câu 9:
+mcedit /etc/systemd/system/my.service
+[Unit]
+Description=My test unit
+After=networking.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/firewall.bash
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl status my.service
+systemctl enable my.service 
+systemctl status my.service
+
+
+The hard block limit is the absolute maximum amount of disk space that a user or group can use. Once this limit is reached, no further disk space can be used.  The soft block limit defines the maximum amount of disk space that can be used.

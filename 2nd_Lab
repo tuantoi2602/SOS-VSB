@@ -1,0 +1,46 @@
+3rd LAB:
+
+ps -A
+cd /etc/systemd/
+cd system
+ls
+cat sshd.service
+
+
+
+ex3: /
+- change to root mode
+	type "su" and enter password
+
+- type "ip add" to find the ip address
+if cannot see ip address, exit all and login again, login: "root" and enter password, type "ip add" to check to the ip and if still cannot
+then type "dhclient enp0s8 to add ip address, then type "ip add" to take the ip 
+
+- go to cmd in main desktop, type "ssh bui0016@...[enter ip add] and enter password, then type "su" and enter password
+ 
+find /home/ -name "*.backup"
+touch ex1.backup
+find /home/ -name "*.backup"
+
+
+mcedit /etc/systemd/system/my.service
+[Unit]
+Description=My test unit
+After=networking.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/my.bash
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl status my.service
+systemctl enable my.service 
+
+
+du -sh /* | sort -h
+
+find . -type f -size +1k
+
+du /home/*
